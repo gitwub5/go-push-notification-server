@@ -32,7 +32,7 @@ This repository contains a Go-based push notification server. The server is desi
 
 1. Start the server:
     ```sh
-    go run main.go
+    go run cmd/main.go
     ```
 2. Send a test notification:
     ```sh
