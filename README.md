@@ -1,1 +1,0 @@
-# go-push-notification-server
