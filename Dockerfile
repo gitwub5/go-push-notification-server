@@ -1,30 +1,21 @@
-# Build stage
-FROM golang:1.21-alpine AS builder
+FROM golang:alpine AS builder  
 
-# Set working directory
+LABEL maintainer="GeonWoo <tonyw2@khu.ac.kr>"
+
 WORKDIR /app
 
-# Copy the Go modules and install dependencies
-COPY go.mod go.sum ./
-RUN go mod download
+RUN apk add --no-cache git
 
-# Copy the rest of the source code
 COPY . .
 
-# Build the application (this creates a static binary)
-RUN go build -o push-server .
+RUN go mod download && go build -o notification-server ./cmd/main.go
 
-# Final stage
-FROM alpine:latest
+FROM alpine:3.18
 
-# Set working directory
 WORKDIR /root/
 
-# Copy the binary from the build stage
-COPY --from=builder /app/push-server .
+COPY --from=builder /app/notification-server .
 
-# Expose the port the server runs on
 EXPOSE 8080
 
-# Command to run the server
-CMD ["./push-server"]
+CMD ["./notification-server"]
