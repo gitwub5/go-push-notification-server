@@ -4,7 +4,8 @@ LABEL maintainer="ssgwoo <tonyw2@khu.ac.kr>"
 
 WORKDIR /app
 
-RUN apk add --no-cache git
+ENV CGO_ENABLED=1
+RUN apk add --no-cache git gcc musl-dev
 
 COPY . .
 
@@ -15,6 +16,8 @@ FROM alpine:3.18
 WORKDIR /root/
 
 COPY --from=builder /app/go-notification-server .
+
+COPY --from=builder /app/config /root/config
 
 EXPOSE 8080
 
