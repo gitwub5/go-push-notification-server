@@ -36,14 +36,43 @@ This repository contains a Go-based push notification server. The server is desi
     ```
 2. Send a test notification:
     ```sh
-    curl -X POST http://localhost:8080/send     -H "Content-Type: application/json"     -d '{"title": "Hello", "message": "This is a test", "token": "example-token"}'
+   curl -X POST http://localhost:8080/send     -H "Content-Type: application/json"     -d '{
+    "title": "Hello",
+    "message": "This is a test",
+    "token": "example-token",
+    "priority": "high",
+    "platform": 2
+    }'
     ```
+
+    **Example Response**:
+    ```json
+    {
+        "status": "success",
+        "data": {
+            "notification_id": "cb7675bb-37ea-46af-a0c0-98004eeaff03",
+            "title": "Hello",
+            "message": "This is a test"
+        }
+    }
+    ```
+
+    **Note**: The `notification_id` for each notification is generated using a UUID to ensure global uniqueness.
+
 3. Send a Subscription request & Unsubscription request:
     ```sh
     curl -X POST http://localhost:8080/subscribe     -H "Content-Type: application/json"     -d '{
     "token": "example-device-token",
     "topic": "primary notification"
     }'
+    ```
+
+    **Example Response**:
+    ```json
+    {
+        "status": "success",
+        "message": "Subscribed to topic successfully!"
+    }
     ```
 
     ```sh
@@ -53,6 +82,14 @@ This repository contains a Go-based push notification server. The server is desi
     }'
     ```
 
+    **Example Response**:
+    ```json
+    {
+        "status": "success",
+        "message": "Unsubscribed from topic successfully!"
+    }
+    ```
+    
 ## Added APIs
 
 ### 1. **Notification Status API**
@@ -63,16 +100,21 @@ This API allows you to check the status of a specific notification that has been
 
 **Example**:
 ```sh
-curl -X GET http://localhost:8080/api/status/12345
+curl -X GET http://localhost:8080/api/status/1234f963-e9d5-488d-93cb-2fc83db02fcc
 ```
 
 **Response**:
 ```json
 {
-    "notification_id": "12345",
+    "notification_id": "1234f963-e9d5-488d-93cb-2fc83db02fcc",
+    "title": "Test Notification",
+    "message": "This is a test message",
+    "priority": "high",
     "status": "delivered"
 }
 ```
+
+**Note**: The `notification_id` field represents a UUID generated for the notification, ensuring it is globally unique.
 
 ### 2. **Notification Logs API**
 
@@ -89,13 +131,17 @@ curl -X GET http://localhost:8080/api/logs
 ```json
 [
     {
-        "notification_id": "12345",
+        "id": "73ee262d-c2ad-405c-b4b1-aeace2f8029f",
         "title": "Test Notification",
+        "message": "This is a test message",
+        "priority": "high",
         "status": "delivered"
     },
     {
-        "notification_id": "67890",
+        "id": "b5676a2d-8c25-4893-b8e2-abc1234ef567",
         "title": "Another Notification",
+        "message": "Another test message",
+        "priority": "normal",
         "status": "failed"
     }
 ]

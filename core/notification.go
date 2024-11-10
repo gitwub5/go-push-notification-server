@@ -7,7 +7,12 @@ import (
 	"net/http"
 )
 
+// TODO: FCM(Firebase Cloud Messaging)을 사용하여 Android 푸시 알림 전송
+// TODO: APNs(Apple Push Notification Service)를 사용하여 iOS 푸시 알림 전송
+
+// Notification은 푸시 알림의 데이터 구조를 정의합니다.
 type Notification struct {
+	ID       string `json:"id"` // 고유 ID (예: UUID)
 	Title    string `json:"title"`
 	Message  string `json:"message"`
 	Token    string `json:"token"`    // 디바이스 토큰
