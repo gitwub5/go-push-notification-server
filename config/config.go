@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v2"
 )
 
@@ -28,6 +29,11 @@ type Config struct {
 
 // LoadConfig reads config.yml and overwrites it with environment variables if available
 func LoadConfig() (*Config, error) {
+	// .env 파일 로드
+	if err := godotenv.Load(); err != nil {
+		log.Printf("No .env file found, continuing without it")
+	}
+
 	file, err := os.ReadFile("config/config.yml")
 	if err != nil {
 		log.Printf("Failed to read config file: %v", err)
