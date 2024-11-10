@@ -1,0 +1,55 @@
+version: '3.9'
+
+services:
+  redis-server:
+    image: redis:latest
+    container_name: redis-server
+    ports:
+      - "6379:6379"
+    networks:
+      - push-network
+
+  mysql-server:
+    image: mysql:latest
+    container_name: mysql-server
+    environment:
+      MYSQL_ROOT_PASSWORD: password   # MySQL root 비밀번호 설정
+      MYSQL_DATABASE: push_notification_db 
+    ports:
+      - "3306:3306"
+    networks:
+      - push-network
+
+  push-server:
+    image: ssgwoo/go-notification-server:latest  
+    container_name: push-server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis-server
+      - mysql-server
+    environment:
+      - REDIS_HOST=redis-server
+      - REDIS_PORT=6379
+      - MYSQL_HOST=mysql-server
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=push_notification_db
+      - ENV=production  
+    networks:
+      - push-network
+
+  push-client:
+    image: ssgwoo/go-push-client:latest 
+    container_name: push-client
+    depends_on:
+      - push-server
+    environment:
+      - SERVER_URL=http://push-server:8080
+    networks:
+      - push-network
+
+networks:
+  push-network:
+    driver: bridge

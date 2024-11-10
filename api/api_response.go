@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/json"
-	"go-push-notification-server/core"
+
 	"net/http"
+
+	"github.com/gitwub5/go-push-notification-server/core"
 )
 
 // 성공 응답을 생성하는 함수

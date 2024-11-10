@@ -2,10 +2,21 @@ package api
 
 import (
 	"encoding/json"
-	"go-push-notification-server/core"
+
 	"log"
 	"net/http"
+
+	"github.com/gitwub5/go-push-notification-server/core"
+	"github.com/gitwub5/go-push-notification-server/storage"
 )
+
+// 전역 변수로 데이터베이스 인스턴스를 선언합니다.
+var store *storage.MySQLStore
+
+// InitStore는 전역 데이터베이스 인스턴스를 설정하는 함수입니다.
+func InitStore(s *storage.MySQLStore) {
+	store = s
+}
 
 // 사용자가 특정 주제를 구독하는 핸들러
 func SubscribeHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,11 +29,20 @@ func SubscribeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 구독 로직 (주제 및 토큰을 저장)
-	// 여기서는 단순히 로그로 출력하지만, 실제로는 Redis나 데이터베이스에 저장
-	log.Printf("Subscribing token: %s to topic: %s\n", subscription.Token, subscription.Topic)
+	// 구독 정보 MySQL에 추가
+	newSubscriber := storage.Subscriber{
+		Token:    subscription.Token,
+		Platform: subscription.Platform,
+		Topic:    subscription.Topic,
+	}
+	err = store.AddSubscriber(newSubscriber)
+	if err != nil {
+		log.Printf("Failed to add subscriber to MySQL: %v", err)
+		sendErrorResponse(w, "Failed to subscribe to topic", err.Error())
+		return
+	}
 
-	// 구독 성공 응답
+	log.Printf("Subscribing token: %s to topic: %s with platform: %d\n", subscription.Token, subscription.Topic, subscription.Platform)
 	sendSuccessResponse(w, "Subscribed to topic successfully!", nil)
 }
 
@@ -37,10 +57,14 @@ func UnsubscribeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 구독 취소 로직 (주제 및 토큰을 삭제)
-	// 여기서는 단순히 로그로 출력하지만, 실제로는 Redis나 데이터베이스에서 제거
-	log.Printf("Unsubscribing token: %s from topic: %s\n", subscription.Token, subscription.Topic)
+	// 구독 정보 MySQL에서 삭제
+	err = store.DeleteSubscriber(subscription.Token, subscription.Topic, subscription.Platform)
+	if err != nil {
+		log.Printf("Failed to remove subscriber from MySQL: %v", err)
+		sendErrorResponse(w, "Failed to unsubscribe from topic", err.Error())
+		return
+	}
 
-	// 구독 취소 성공 응답
+	log.Printf("Unsubscribing token: %s from topic: %s\n", subscription.Token, subscription.Topic)
 	sendSuccessResponse(w, "Unsubscribed from topic successfully!", nil)
 }
