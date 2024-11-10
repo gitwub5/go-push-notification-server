@@ -9,7 +9,7 @@ import (
 )
 
 // 성공 응답을 생성하는 함수
-func sendSuccessResponse(w http.ResponseWriter, message string, data interface{}) {
+func SendSuccessResponse(w http.ResponseWriter, message string, data interface{}) {
 	response := core.APIResponse{
 		Status:  "success",
 		Message: message,
@@ -22,7 +22,7 @@ func sendSuccessResponse(w http.ResponseWriter, message string, data interface{}
 }
 
 // 에러 응답을 생성하는 함수
-func sendErrorResponse(w http.ResponseWriter, message string, err string) {
+func SendErrorResponse(w http.ResponseWriter, message string, err string) {
 	response := core.APIError{
 		Status:  "error",
 		Message: message,

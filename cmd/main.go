@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gitwub5/go-push-notification-server/api"
 	"github.com/gitwub5/go-push-notification-server/config"
+	"github.com/gitwub5/go-push-notification-server/handler"
 	"github.com/gitwub5/go-push-notification-server/storage"
 	"github.com/gitwub5/go-push-notification-server/utils"
 	"github.com/gorilla/mux"
@@ -28,32 +28,32 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-	api.InitStore(db)
+	handler.InitStore(db)
 
 	// Redis 초기화
 	redisAddr := fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)
 	redisStore := storage.NewRedisStore(redisAddr, cfg.Redis.Password, 0)
-	api.InitRedisStore(redisStore)
+	handler.InitRedisStore(redisStore)
 
 	// 새로운 gorilla/mux 라우터 생성
 	r := mux.NewRouter()
 
 	// 푸시 알림 핸들러 설정
-	r.HandleFunc("/send", api.PushNotificationHandler).Methods("POST")
+	r.HandleFunc("/send", handler.PushNotificationHandler).Methods("POST")
 
 	// 구독 및 구독 취소 핸들러 설정
-	r.HandleFunc("/subscribe", api.SubscribeHandler).Methods("POST")
-	r.HandleFunc("/unsubscribe", api.UnsubscribeHandler).Methods("POST")
+	r.HandleFunc("/subscribe", handler.SubscribeHandler).Methods("POST")
+	r.HandleFunc("/unsubscribe", handler.UnsubscribeHandler).Methods("POST")
 
 	// 알림 상태 핸들러 설정
-	r.HandleFunc("/api/status/{notification_id}", api.GetNotificationStatus).Methods("GET")
-	r.HandleFunc("/api/logs", api.GetNotificationLogs).Methods("GET")
+	r.HandleFunc("/api/status/{notification_id}", handler.GetNotificationStatus).Methods("GET")
+	r.HandleFunc("/api/logs", handler.GetNotificationLogs).Methods("GET")
 
 	// 서버 상태 및 설정 핸들러 설정
-	r.HandleFunc("/api/health", api.HealthCheck).Methods("GET")
-	r.HandleFunc("/api/stat/go", api.GetGoStats).Methods("GET")
-	r.HandleFunc("/api/stat/app", api.GetAppStats).Methods("GET")
-	r.HandleFunc("/api/config", api.GetServerConfig).Methods("GET")
+	r.HandleFunc("/api/health", handler.HealthCheck).Methods("GET")
+	r.HandleFunc("/api/stat/go", handler.GetGoStats).Methods("GET")
+	r.HandleFunc("/api/stat/app", handler.GetAppStats).Methods("GET")
+	r.HandleFunc("/api/config", handler.GetServerConfig).Methods("GET")
 
 	// 서버 실행 로그
 	serverAddr := fmt.Sprintf(":%d", cfg.Server.Port)

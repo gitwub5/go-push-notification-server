@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gitwub5/go-push-notification-server/api"
 	"github.com/gitwub5/go-push-notification-server/core"
 	"github.com/gitwub5/go-push-notification-server/storage"
 	"github.com/gorilla/mux"
@@ -40,7 +41,7 @@ func GetNotificationStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 성공 응답 반환
-	sendSuccessResponse(w, "Notification retrieved successfully", notification)
+	api.SendSuccessResponse(w, "Notification retrieved successfully", notification)
 }
 
 // 알림 로그 조회 API (Redis에서 로그 조회)
@@ -74,5 +75,5 @@ func GetNotificationLogs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 성공 응답 반환
-	sendSuccessResponse(w, "Notification logs retrieved successfully", filteredLogs)
+	api.SendSuccessResponse(w, "Notification logs retrieved successfully", filteredLogs)
 }

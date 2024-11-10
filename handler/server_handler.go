@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"log"
@@ -6,6 +6,7 @@ import (
 	"os"
 
 	stats_api "github.com/fukata/golang-stats-api-handler"
+	"github.com/gitwub5/go-push-notification-server/api"
 )
 
 // 전송 통계 조회 API (임시 데이터 - TODO: DB 연동)
@@ -19,7 +20,7 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{
 		"status": "healthy",
 	}
-	sendSuccessResponse(w, "Health check successful", response)
+	api.SendSuccessResponse(w, "Health check successful", response)
 }
 
 // Golang 성능 지표 API
@@ -29,7 +30,7 @@ func GetGoStats(w http.ResponseWriter, r *http.Request) {
 
 // 애플리케이션 통계 API
 func GetAppStats(w http.ResponseWriter, r *http.Request) {
-	sendSuccessResponse(w, "Application statistics retrieved successfully", notificationStats)
+	api.SendSuccessResponse(w, "Application statistics retrieved successfully", notificationStats)
 }
 
 // 서버 설정 파일 조회 API
@@ -37,10 +38,10 @@ func GetServerConfig(w http.ResponseWriter, r *http.Request) {
 	data, err := os.ReadFile("config/config.yml")
 	if err != nil {
 		log.Printf("Error reading config file: %v", err)
-		sendErrorResponse(w, "Could not read config file", err.Error())
+		api.SendErrorResponse(w, "Could not read config file", err.Error())
 		return
 	}
 
 	// 성공 응답 반환
-	sendSuccessResponse(w, "Server configuration retrieved successfully", string(data))
+	api.SendSuccessResponse(w, "Server configuration retrieved successfully", string(data))
 }

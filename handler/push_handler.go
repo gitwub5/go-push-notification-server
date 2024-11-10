@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gitwub5/go-push-notification-server/api"
 	"github.com/gitwub5/go-push-notification-server/core"
 	"github.com/google/uuid"
 )
@@ -16,13 +17,13 @@ func PushNotificationHandler(w http.ResponseWriter, r *http.Request) {
 	// 요청 바디에서 Notification 데이터 파싱
 	err := json.NewDecoder(r.Body).Decode(&notification)
 	if err != nil {
-		sendErrorResponse(w, "Invalid request payload", err.Error())
+		api.SendErrorResponse(w, "Invalid request payload", err.Error())
 		return
 	}
 
 	// 필수 값 검증
 	if notification.Title == "" || notification.Message == "" {
-		sendErrorResponse(w, "Missing required fields: title, message, or token", "")
+		api.SendErrorResponse(w, "Missing required fields: title, message, or token", "")
 		return
 	}
 
@@ -34,7 +35,7 @@ func PushNotificationHandler(w http.ResponseWriter, r *http.Request) {
 	// 알림을 JSON으로 직렬화
 	notificationData, err := json.Marshal(notification)
 	if err != nil {
-		sendErrorResponse(w, "Failed to serialize notification", err.Error())
+		api.SendErrorResponse(w, "Failed to serialize notification", err.Error())
 		return
 	}
 
@@ -42,7 +43,7 @@ func PushNotificationHandler(w http.ResponseWriter, r *http.Request) {
 	err = redisStore.Client.Set(context.Background(), notificationID, notificationData, 0).Err()
 	if err != nil {
 		log.Printf("Failed to save notification to Redis: %v\n", err)
-		sendErrorResponse(w, "Failed to save notification", err.Error())
+		api.SendErrorResponse(w, "Failed to save notification", err.Error())
 		return
 	}
 
@@ -50,7 +51,7 @@ func PushNotificationHandler(w http.ResponseWriter, r *http.Request) {
 	err = redisStore.Client.LPush(context.Background(), "notifications", notificationData).Err()
 	if err != nil {
 		log.Printf("Failed to push notification to Redis list: %v\n", err)
-		sendErrorResponse(w, "Failed to log notification", err.Error())
+		api.SendErrorResponse(w, "Failed to log notification", err.Error())
 		return
 	}
 
@@ -76,5 +77,5 @@ func PushNotificationHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	log.Printf("Response sent to client: %+v\n", response)
-	sendSuccessResponse(w, "Notification sent!", response)
+	api.SendSuccessResponse(w, "Notification sent!", response)
 }

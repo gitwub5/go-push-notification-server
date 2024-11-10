@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gitwub5/go-push-notification-server/api"
 	"github.com/gitwub5/go-push-notification-server/core"
 	"github.com/gitwub5/go-push-notification-server/storage"
 )
@@ -25,7 +26,7 @@ func SubscribeHandler(w http.ResponseWriter, r *http.Request) {
 	// 요청 바디에서 Subscription 데이터 파싱
 	err := json.NewDecoder(r.Body).Decode(&subscription)
 	if err != nil {
-		sendErrorResponse(w, "Invalid request payload", err.Error())
+		api.SendErrorResponse(w, "Invalid request payload", err.Error())
 		return
 	}
 
@@ -38,12 +39,12 @@ func SubscribeHandler(w http.ResponseWriter, r *http.Request) {
 	err = store.AddSubscriber(newSubscriber)
 	if err != nil {
 		log.Printf("Failed to add subscriber to MySQL: %v", err)
-		sendErrorResponse(w, "Failed to subscribe to topic", err.Error())
+		api.SendErrorResponse(w, "Failed to subscribe to topic", err.Error())
 		return
 	}
 
 	log.Printf("Subscribing token: %s to topic: %s with platform: %d\n", subscription.Token, subscription.Topic, subscription.Platform)
-	sendSuccessResponse(w, "Subscribed to topic successfully!", nil)
+	api.SendSuccessResponse(w, "Subscribed to topic successfully!", nil)
 }
 
 // 사용자가 특정 주제에서 구독을 취소하는 핸들러
@@ -53,7 +54,7 @@ func UnsubscribeHandler(w http.ResponseWriter, r *http.Request) {
 	// 요청 바디에서 Subscription 데이터 파싱
 	err := json.NewDecoder(r.Body).Decode(&subscription)
 	if err != nil {
-		sendErrorResponse(w, "Invalid request payload", err.Error())
+		api.SendErrorResponse(w, "Invalid request payload", err.Error())
 		return
 	}
 
@@ -61,10 +62,10 @@ func UnsubscribeHandler(w http.ResponseWriter, r *http.Request) {
 	err = store.DeleteSubscriber(subscription.Token, subscription.Topic, subscription.Platform)
 	if err != nil {
 		log.Printf("Failed to remove subscriber from MySQL: %v", err)
-		sendErrorResponse(w, "Failed to unsubscribe from topic", err.Error())
+		api.SendErrorResponse(w, "Failed to unsubscribe from topic", err.Error())
 		return
 	}
 
 	log.Printf("Unsubscribing token: %s from topic: %s\n", subscription.Token, subscription.Topic)
-	sendSuccessResponse(w, "Unsubscribed from topic successfully!", nil)
+	api.SendSuccessResponse(w, "Unsubscribed from topic successfully!", nil)
 }
