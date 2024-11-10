@@ -2,10 +2,21 @@ package api
 
 import (
 	"encoding/json"
-	"go-push-notification-server/core"
+
 	"log"
 	"net/http"
+
+	"github.com/gitwub5/go-push-notification-server/core"
+	"github.com/gitwub5/go-push-notification-server/storage"
 )
+
+// 전역 변수로 데이터베이스 인스턴스를 선언합니다.
+var store *storage.MySQLStore
+
+// InitStore는 전역 데이터베이스 인스턴스를 설정하는 함수입니다.
+func InitStore(s *storage.MySQLStore) {
+	store = s
+}
 
 // 사용자가 특정 주제를 구독하는 핸들러
 func SubscribeHandler(w http.ResponseWriter, r *http.Request) {

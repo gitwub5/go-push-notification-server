@@ -37,7 +37,7 @@ func GetAppStats(w http.ResponseWriter, r *http.Request) {
 
 // 서버 설정 파일 조회 API
 func GetServerConfig(w http.ResponseWriter, r *http.Request) {
-	data, err := os.ReadFile("../config/config.yml")
+	data, err := os.ReadFile("config/config.yml")
 	if err != nil {
 		log.Printf("Error reading config file: %v", err)
 		http.Error(w, "Could not read config file", http.StatusInternalServerError)
