@@ -15,7 +15,7 @@ type Notification struct {
 	ID       string `json:"id"` // 고유 ID (예: UUID)
 	Title    string `json:"title"`
 	Message  string `json:"message"`
-	Token    string `json:"token"`    // 디바이스 토큰
+	Token    string `json:"token"`    // 디바이스 토큰 (알람을 받을 디바이스)
 	Priority string `json:"priority"` // 알림 우선순위 (예: "high", "normal")
 	Platform int    `json:"platform"` // 플랫폼 (1 = iOS, 2 = Android)
 	Status   string `json:"status"`   // 알림 상태 (예: "pending", "delivered", "failed")

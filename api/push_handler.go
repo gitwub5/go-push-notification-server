@@ -20,6 +20,12 @@ func PushNotificationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 필수 값 검증
+	if notification.Title == "" || notification.Message == "" {
+		sendErrorResponse(w, "Missing required fields: title, message, or token", "")
+		return
+	}
+
 	// ID 생성 (UUID 사용)
 	notificationID := uuid.New().String()
 	notification.ID = notificationID

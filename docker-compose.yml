@@ -9,6 +9,17 @@ services:
     networks:
       - push-network
 
+  mysql-server:
+    image: mysql:latest
+    container_name: mysql-server
+    environment:
+      MYSQL_ROOT_PASSWORD: password   # MySQL root 비밀번호 설정
+      MYSQL_DATABASE: push_notification_db 
+    ports:
+      - "3306:3306"
+    networks:
+      - push-network
+
   push-server:
     image: ssgwoo/go-notification-server:latest  
     container_name: push-server
@@ -16,9 +27,15 @@ services:
       - "8080:8080"
     depends_on:
       - redis-server
+      - mysql-server
     environment:
       - REDIS_HOST=redis-server
       - REDIS_PORT=6379
+      - MYSQL_HOST=mysql-server
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=push_notification_db
       - ENV=production  
     networks:
       - push-network

@@ -24,7 +24,7 @@ func main() {
 	}
 
 	// MySQL 데이터베이스 초기화
-	db, err := storage.NewMySQLStore("file::memory:?cache=shared")
+	db, err := storage.NewMySQLStore(cfg.MySQL.User, cfg.MySQL.Password, cfg.MySQL.Host, cfg.MySQL.Port, cfg.MySQL.Database)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}

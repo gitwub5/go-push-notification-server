@@ -29,11 +29,20 @@ func SubscribeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 구독 로직 (주제 및 토큰을 저장)
-	// 여기서는 단순히 로그로 출력하지만, 실제로는 Redis나 데이터베이스에 저장
-	log.Printf("Subscribing token: %s to topic: %s\n", subscription.Token, subscription.Topic)
+	// 구독 정보 MySQL에 추가
+	newSubscriber := storage.Subscriber{
+		Token:    subscription.Token,
+		Platform: subscription.Platform,
+		Topic:    subscription.Topic,
+	}
+	err = store.AddSubscriber(newSubscriber)
+	if err != nil {
+		log.Printf("Failed to add subscriber to MySQL: %v", err)
+		sendErrorResponse(w, "Failed to subscribe to topic", err.Error())
+		return
+	}
 
-	// 구독 성공 응답
+	log.Printf("Subscribing token: %s to topic: %s with platform: %d\n", subscription.Token, subscription.Topic, subscription.Platform)
 	sendSuccessResponse(w, "Subscribed to topic successfully!", nil)
 }
 
@@ -48,10 +57,14 @@ func UnsubscribeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 구독 취소 로직 (주제 및 토큰을 삭제)
-	// 여기서는 단순히 로그로 출력하지만, 실제로는 Redis나 데이터베이스에서 제거
-	log.Printf("Unsubscribing token: %s from topic: %s\n", subscription.Token, subscription.Topic)
+	// 구독 정보 MySQL에서 삭제
+	err = store.DeleteSubscriber(subscription.Token, subscription.Topic, subscription.Platform)
+	if err != nil {
+		log.Printf("Failed to remove subscriber from MySQL: %v", err)
+		sendErrorResponse(w, "Failed to unsubscribe from topic", err.Error())
+		return
+	}
 
-	// 구독 취소 성공 응답
+	log.Printf("Unsubscribing token: %s from topic: %s\n", subscription.Token, subscription.Topic)
 	sendSuccessResponse(w, "Unsubscribed from topic successfully!", nil)
 }

@@ -39,14 +39,8 @@ func GetNotificationStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 응답 데이터 생성
-	response := map[string]interface{}{
-		"notification_id": notificationIDStr,
-		"data":            notification,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	// 성공 응답 반환
+	sendSuccessResponse(w, "Notification retrieved successfully", notification)
 }
 
 // 알림 로그 조회 API (Redis에서 로그 조회)
@@ -79,7 +73,6 @@ func GetNotificationLogs(w http.ResponseWriter, r *http.Request) {
 		filteredLogs = append(filteredLogs, filteredLog)
 	}
 
-	// JSON 응답 반환
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(filteredLogs)
+	// 성공 응답 반환
+	sendSuccessResponse(w, "Notification logs retrieved successfully", filteredLogs)
 }

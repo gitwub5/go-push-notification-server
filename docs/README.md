@@ -61,9 +61,12 @@ This repository contains a Go-based push notification server. The server is desi
 
 3. Send a Subscription request & Unsubscription request:
     ```sh
-    curl -X POST http://localhost:8080/subscribe     -H "Content-Type: application/json"     -d '{
+    curl -X POST http://localhost:8080/subscribe \
+    -H "Content-Type: application/json" \
+    -d '{
     "token": "example-device-token",
-    "topic": "primary notification"
+    "topic": "primary notification",
+    "platform": 2
     }'
     ```
 
@@ -76,9 +79,12 @@ This repository contains a Go-based push notification server. The server is desi
     ```
 
     ```sh
-    curl -X POST http://localhost:8080/unsubscribe     -H "Content-Type: application/json"     -d '{
+    curl -X POST http://localhost:8080/unsubscribe \
+    -H "Content-Type: application/json" \
+    -d '{
     "token": "example-device-token",
-    "topic": "primary notification"
+    "topic": "primary notification",
+    "platform": 2
     }'
     ```
 
