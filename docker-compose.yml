@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  redis-server:
+    image: redis:latest
+    container_name: redis-server
+    ports:
+      - "6379:6379"
+    networks:
+      - push-network
+
+  push-server:
+    image: ssgwoo/go-notification-server:latest  
+    container_name: push-server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis-server
+    environment:
+      - REDIS_HOST=redis-server
+      - REDIS_PORT=6379
+      - ENV=production  
+    networks:
+      - push-network
+
+  push-client:
+    image: ssgwoo/go-push-client:latest 
+    container_name: push-client
+    depends_on:
+      - push-server
+    environment:
+      - SERVER_URL=http://push-server:8080
+    networks:
+      - push-network
+
+networks:
+  push-network:
+    driver: bridge
