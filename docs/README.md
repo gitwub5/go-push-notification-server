@@ -36,13 +36,15 @@ This repository contains a Go-based push notification server. The server is desi
     ```
 2. Send a test notification:
     ```sh
-   curl -X POST http://localhost:8080/send     -H "Content-Type: application/json"     -d '{
-    "title": "Hello",
-    "message": "This is a test",
-    "token": "example-token",
-    "priority": "high",
-    "platform": 2
-    }'
+   curl -X POST http://localhost:8080/send     
+        -H "Content-Type: application/json"     
+        -d '{
+            "title": "Hello",
+            "message": "This is a test",
+            "token": "example-token",
+            "priority": "high",
+            "platform": 2
+            }'
     ```
 
     **Example Response**:
@@ -62,12 +64,12 @@ This repository contains a Go-based push notification server. The server is desi
 3. Send a Subscription request & Unsubscription request:
     ```sh
     curl -X POST http://localhost:8080/subscribe \
-    -H "Content-Type: application/json" \
-    -d '{
-    "token": "example-device-token",
-    "topic": "primary notification",
-    "platform": 2
-    }'
+        -H "Content-Type: application/json" \
+        -d '{
+        "token": "example-device-token",
+        "topic": "primary notification",
+        "platform": 2
+        }'
     ```
 
     **Example Response**:
@@ -80,12 +82,12 @@ This repository contains a Go-based push notification server. The server is desi
 
     ```sh
     curl -X POST http://localhost:8080/unsubscribe \
-    -H "Content-Type: application/json" \
-    -d '{
-    "token": "example-device-token",
-    "topic": "primary notification",
-    "platform": 2
-    }'
+        -H "Content-Type: application/json" \
+        -d '{
+        "token": "example-device-token",
+        "topic": "primary notification",
+        "platform": 2
+        }'
     ```
 
     **Example Response**:
@@ -241,15 +243,42 @@ redis:
 
 ## Configuration
 
-Configuration options can be set in the `config.yml` file. Here is an example configuration:
+Configuration options can be set in the `config.yml` file or overridden using environment variables. This allows flexibility for different deployment environments (e.g., development vs. production).
+
+### Example `config.yml` File:
 
 ```yaml
-port: 8080
+server:
+  port: 8080  # The port the server will run on
+
 redis:
-  host: localhost
-  port: 6379
-  password: yourpassword
+  host: localhost  # Redis host address
+  port: 6379       # Redis port number
+  password: yourpassword  # Redis password (leave empty if not set)
+
+mysql:
+  host: localhost  # MySQL host address
+  port: 3306       # MySQL port number
+  user: root       # MySQL user
+  password: password  # MySQL password
+  database: push_notification_db  # Database name
 ```
+
+### Environment Variable Overrides:
+The server configuration can be overridden using environment variables for better flexibility in deployment. Here are some examples of environment variables that can be used:
+
+- `SERVER_PORT`: Overrides the server port.
+- `REDIS_HOST`: Overrides the Redis host address.
+- `REDIS_PORT`: Overrides the Redis port number.
+- `REDIS_PASSWORD`: Overrides the Redis password.
+- `MYSQL_HOST`: Overrides the MySQL host address.
+- `MYSQL_PORT`: Overrides the MySQL port number.
+- `MYSQL_USER`: Overrides the MySQL user.
+- `MYSQL_PASSWORD`: Overrides the MySQL password.
+- `MYSQL_DATABASE`: Overrides the MySQL database name.
+
+**Note**: If environment variables are set, they will take precedence over the `config.yml` file.
+
 
 ## Contributing
 
