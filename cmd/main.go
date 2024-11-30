@@ -7,7 +7,8 @@ import (
 
 	"github.com/gitwub5/go-push-notification-server/config"
 	"github.com/gitwub5/go-push-notification-server/handler"
-	"github.com/gitwub5/go-push-notification-server/storage"
+	"github.com/gitwub5/go-push-notification-server/storage/mysql"
+	"github.com/gitwub5/go-push-notification-server/storage/redis"
 	"github.com/gitwub5/go-push-notification-server/utils"
 	"github.com/gorilla/mux"
 )
@@ -24,7 +25,7 @@ func main() {
 	}
 
 	// MySQL 데이터베이스 초기화
-	db, err := storage.NewMySQLStore(cfg.MySQL.User, cfg.MySQL.Password, cfg.MySQL.Host, cfg.MySQL.Port, cfg.MySQL.Database)
+	db, err := mysql.NewMySQLStore(cfg.MySQL.User, cfg.MySQL.Password, cfg.MySQL.Host, cfg.MySQL.Port, cfg.MySQL.Database)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
@@ -32,7 +33,7 @@ func main() {
 
 	// Redis 초기화
 	redisAddr := fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)
-	redisStore := storage.NewRedisStore(redisAddr, cfg.Redis.Password, 0)
+	redisStore := redis.NewRedisStore(redisAddr, cfg.Redis.Password, 0)
 	handler.InitRedisStore(redisStore)
 
 	// 새로운 gorilla/mux 라우터 생성

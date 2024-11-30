@@ -1,4 +1,4 @@
-package storage
+package mysql
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ type MySQLStore struct {
 	DB *gorm.DB
 }
 
-// Subscriber는 구독자 데이터를 정의하는 구조체입니다.
+// Subscriber는 구독자 스키마를 정의하는 구조체입니다.
 type Subscriber struct {
 	gorm.Model
 	Token    string `json:"token" gorm:"type:varchar(255);uniqueIndex"` // 디바이스 토큰 (고유 인덱스)

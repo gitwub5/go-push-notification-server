@@ -8,15 +8,15 @@ import (
 
 	"github.com/gitwub5/go-push-notification-server/api"
 	"github.com/gitwub5/go-push-notification-server/core"
-	"github.com/gitwub5/go-push-notification-server/storage"
+	"github.com/gitwub5/go-push-notification-server/storage/redis"
 	"github.com/gorilla/mux"
 )
 
 // 전역 변수로 Redis 인스턴스를 선언합니다.
-var redisStore *storage.RedisStore
+var redisStore *redis.RedisStore
 
 // InitRedisStore는 전역 Redis 인스턴스를 설정하는 함수입니다.
-func InitRedisStore(r *storage.RedisStore) {
+func InitRedisStore(r *redis.RedisStore) {
 	redisStore = r
 }
 

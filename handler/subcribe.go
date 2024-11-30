@@ -8,14 +8,14 @@ import (
 
 	"github.com/gitwub5/go-push-notification-server/api"
 	"github.com/gitwub5/go-push-notification-server/core"
-	"github.com/gitwub5/go-push-notification-server/storage"
+	"github.com/gitwub5/go-push-notification-server/storage/mysql"
 )
 
 // 전역 변수로 데이터베이스 인스턴스를 선언합니다.
-var store *storage.MySQLStore
+var store *mysql.MySQLStore
 
 // InitStore는 전역 데이터베이스 인스턴스를 설정하는 함수입니다.
-func InitStore(s *storage.MySQLStore) {
+func InitStore(s *mysql.MySQLStore) {
 	store = s
 }
 
@@ -31,7 +31,7 @@ func SubscribeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 구독 정보 MySQL에 추가
-	newSubscriber := storage.Subscriber{
+	newSubscriber := mysql.Subscriber{
 		Token:    subscription.Token,
 		Platform: subscription.Platform,
 		Topic:    subscription.Topic,

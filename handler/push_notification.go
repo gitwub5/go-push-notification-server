@@ -58,7 +58,7 @@ func PushNotificationHandler(w http.ResponseWriter, r *http.Request) {
 	// 로그에 푸시 알림 전송 내용 출력
 	log.Printf("Notification sent and saved to Redis with ID %s: %+v\n", notificationID, notification)
 
-	// 실제 알림 전송
+	// TODO: 실제 알림 전송
 	// err = notification.Send()
 	// if err != nil {
 	// 	log.Printf("Failed to send notification: %v\n", err) // 에러 로그 기록
