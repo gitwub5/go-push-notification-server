@@ -15,6 +15,8 @@ FROM alpine:3.18
 
 WORKDIR /root/
 
+RUN apk add --no-cache curl
+
 COPY --from=builder /app/go-push-client .
 COPY --from=builder /app/templates /root/templates
 

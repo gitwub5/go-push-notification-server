@@ -15,6 +15,10 @@ spec:
       labels:
         app: push-server
     spec:
+      initContainers:
+      - name: wait-for-mysql
+        image: busybox
+        command: ['sh', '-c', 'until nc -z mysql.push-notifications.svc.cluster.local 3306; do echo waiting for mysql; sleep 2; done;']
       containers:
       - name: push-server
         image: ssgwoo/go-notification-server:latest
@@ -37,7 +41,7 @@ spec:
         - containerPort: 8080
         readinessProbe:
           httpGet:
-            path: /health
+            path: /api/health
             port: 8080
           initialDelaySeconds: 10
           periodSeconds: 15
