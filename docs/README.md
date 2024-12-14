@@ -29,39 +29,60 @@ This repository contains a Go-based push notification server. The server is desi
     ```
 
 ## Usage
+### 1. Start the server:
+```sh
+go run cmd/main.go
+```
 
-1. Start the server:
-    ```sh
-    go run cmd/main.go
-    ```
-2. Send a test notification:
-    ```sh
-   curl -X POST http://localhost:8080/send     
-        -H "Content-Type: application/json"     
-        -d '{
-            "title": "Hello",
-            "message": "This is a test",
-            "token": "example-token",
-            "priority": "high",
-            "platform": 2
-            }'
-    ```
+### 2. Send a test notification:
 
-    **Example Response**:
-    ```json
-    {
-        "status": "success",
-        "data": {
-            "notification_id": "cb7675bb-37ea-46af-a0c0-98004eeaff03",
-            "title": "Hello",
-            "message": "This is a test"
-        }
+#### Direct Notification:
+Send a notification to specific device tokens with the following command:
+
+```sh
+curl -X POST http://localhost:8080/send \
+    -H "Content-Type: application/json" \
+    -d '{
+        "tokens": ["device_token_1", "device_token_2"],
+        "platform": 2,
+        "title": "Direct Notification",
+        "message": "This is a direct notification.",
+        "priority": "high"
+    }'
+```
+
+#### Topic Notification:
+Send a notification to all users subscribed to a specific topic with the following command:
+
+```sh
+curl -X POST http://localhost:8080/send/news_updates \
+    -H "Content-Type: application/json" \
+    -d '{
+        "title": "Topic Notification",
+        "message": "This notification is sent to topic subscribers."
+    }'
+```
+
+### Example Response:
+```json
+{
+    "status": "success",
+    "data": {
+        "notification_id": "cb7675bb-37ea-46af-a0c0-98004eeaff03",
+        "title": "Hello",
+        "message": "This is a test"
     }
-    ```
+}
+```
 
-    **Note**: The `notification_id` for each notification is generated using a UUID to ensure global uniqueness.
+### Notes:
+- The `notification_id` for each notification is generated using a UUID to ensure global uniqueness.
+- Ensure your server is running before sending notifications.
+- Customize the tokens, platform, title, and message fields as needed for your use case.
 
-3. Send a Subscription request & Unsubscription request:
+
+### 3. Send a Subscription request & Unsubscription request:
+
     ```sh
     curl -X POST http://localhost:8080/subscribe \
         -H "Content-Type: application/json" \

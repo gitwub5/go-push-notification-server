@@ -40,7 +40,19 @@ func main() {
 	r := mux.NewRouter()
 
 	// 푸시 알림 핸들러 설정
-	r.HandleFunc("/send", handler.PushNotificationHandler).Methods("POST")
+	// TODO: topic도 같이 받아서 해당 topic에 구독한 사용자에게 알림을 보내도록 수정
+	// TODO: 플로우 변경 -> Redis를 큐 시스템으로 활용 (Pub/Sub)
+	/*
+		Redis의 Pub/Sub 또는 Stream 기능을 활용하여 비동기 알림 전송을 구현
+		•	send 요청이 들어오면 Redis에 알림 이벤트를 게시
+		•	별도의 **알림 처리 워커(worker)**가 Redis를 구독하고 이벤트를 처리하여 구독자들에게 알림을 보내는 방식
+		1.	send 요청 수신.
+		2.	Redis에 알림 이벤트 게시.
+		3.	워커가 Redis에서 이벤트를 구독.
+		4.	워커가 MySQL 또는 Redis에서 구독자 정보를 조회 후 알림 전송.
+	*/
+	r.HandleFunc("/send", handler.PushDirectNotificationHandler).Methods("POST")
+	r.HandleFunc("/send/{topic}", handler.PushTopicNotificationHandler).Methods("POST")
 
 	// 구독 및 구독 취소 핸들러 설정
 	r.HandleFunc("/subscribe", handler.SubscribeHandler).Methods("POST")

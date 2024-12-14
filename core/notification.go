@@ -4,125 +4,150 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
-// TODO: FCM(Firebase Cloud Messaging)을 사용하여 Android 푸시 알림 전송
-// TODO: APNs(Apple Push Notification Service)를 사용하여 iOS 푸시 알림 전송
-
 // Notification은 푸시 알림의 데이터 구조를 정의합니다.
 type Notification struct {
-	ID       string `json:"id"` // 고유 ID (예: UUID)
-	Title    string `json:"title"`
-	Message  string `json:"message"`
-	Token    string `json:"token"`    // 디바이스 토큰 (알람을 받을 디바이스)
-	Priority string `json:"priority"` // 알림 우선순위 (예: "high", "normal")
-	Platform int    `json:"platform"` // 플랫폼 (1 = iOS, 2 = Android)
-	Status   string `json:"status"`   // 알림 상태 (예: "pending", "delivered", "failed")
+	ID       string   `json:"id"`       // 알림 ID -> TODO: 사용할 것인가?
+	Tokens   []string `json:"tokens"`   // 디바이스 토큰 배열
+	Platform int      `json:"platform"` // 1 = iOS, 2 = Android
+	Title    string   `json:"title"`
+	Message  string   `json:"message"`
+	Status   string   `json:"status"` // 알림 상태 (pending, sent, failed)
 }
 
-// Send는 알림을 보내는 메소드로, 실제 푸시 알림 서비스를 연결할 수 있습니다.
-func (n *Notification) Send() error {
+// TODO: send 하는거 service폴더 만들어서 거기로 넘겨야함
+// 방식 1: 직접 토큰과 플랫폼을 지정하여 푸시 알림을 전송 (sendDirect)
+func (n *Notification) SendDirect() error {
 	if n.Platform == 1 {
-		// iOS(APNs)로 푸시 알림 전송
-		err := n.sendToAPNs()
-		if err != nil {
-			n.Status = "failed"
-			return err
-		}
-		n.Status = "delivered"
+		return n.sendToAPNs()
 	} else if n.Platform == 2 {
-		// Android(Firebase)로 푸시 알림 전송
-		err := n.sendToFirebase()
-		if err != nil {
-			n.Status = "failed"
-			return err
-		}
-		n.Status = "delivered"
-	} else {
-		n.Status = "failed"
-		return fmt.Errorf("unsupported platform")
+		return n.sendToFirebase()
 	}
-	return nil
+	return fmt.Errorf("unsupported platform")
 }
 
-// APNs를 통한 iOS 푸시 알림 전송
+// 방식 2: 구독자 DB에서 해당 topic에 구독한 사용자들의 토큰을 조회하고 플랫폼에 따라 알림을 전송 (sendToSubscribers)
+// func (n *Notification) SendToSubscribers(topic string) error {
+// 	// TODO: DB 연결하여, Topic을 구독한 사용자 조회 (repository 패턴 사용)
+// 	subscribers, err := store.GetSubscribersByTopic(topic)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to get subscribers for topic '%s': %v", topic, err)
+// 	}
+
+// 	if len(subscribers) == 0 {
+// 		log.Printf("No subscribers found for topic: %s", topic)
+// 		return nil
+// 	}
+
+// 	// 구독자별로 전송
+// 	for _, subscriber := range subscribers {
+// 		tempNotification := *n
+// 		tempNotification.Tokens = []string{subscriber.Token} // 단일 토큰 처리
+// 		tempNotification.Platform = subscriber.Platform
+
+// 		if err := tempNotification.SendDirect(); err != nil {
+// 			log.Printf("Failed to send notification to %s (platform %d): %v", subscriber.Token, subscriber.Platform, err)
+// 		} else {
+// 			log.Printf("Notification sent successfully to %s (platform %d)", subscriber.Token, subscriber.Platform)
+// 		}
+// 	}
+
+// 	return nil
+// }
+
+// TODO: APNs(Apple Push Notification Service)를 사용하여 iOS 푸시 알림 전송
 func (n *Notification) sendToAPNs() error {
-	apnsURL := "https://api.push.apple.com/3/device/" + n.Token
-	apnsAuthToken := "your-apns-auth-token"
+	for _, token := range n.Tokens {
+		apnsURL := "https://api.push.apple.com/3/device/" + token
+		apnsAuthToken := "your-apns-auth-token"
 
-	payload := map[string]interface{}{
-		"aps": map[string]interface{}{
-			"alert": map[string]string{
-				"title": n.Title,
-				"body":  n.Message,
+		payload := map[string]interface{}{
+			"aps": map[string]interface{}{
+				"alert": map[string]string{
+					"title": n.Title,
+					"body":  n.Message,
+				},
+				"sound": "default",
 			},
-			"sound": "default",
-		},
-	}
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
+		}
+		payloadBytes, err := json.Marshal(payload)
+		if err != nil {
+			log.Printf("Failed to marshal payload for token %s: %v", token, err)
+			continue
+		}
 
-	req, err := http.NewRequest("POST", apnsURL, bytes.NewBuffer(payloadBytes))
-	if err != nil {
-		return err
-	}
+		req, err := http.NewRequest("POST", apnsURL, bytes.NewBuffer(payloadBytes))
+		if err != nil {
+			log.Printf("Failed to create request for token %s: %v", token, err)
+			continue
+		}
 
-	req.Header.Set("Authorization", fmt.Sprintf("bearer %s", apnsAuthToken))
-	req.Header.Set("apns-topic", "com.example.app") // APNs 주제 설정
-	req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("bearer %s", apnsAuthToken))
+		req.Header.Set("apns-topic", "com.example.app") // APNs 주제 설정
+		req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Printf("Failed to send notification to APNs for token %s: %v", token, err)
+			continue
+		}
+		defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to send notification to APNs: %v", resp.Status)
+		if resp.StatusCode != http.StatusOK {
+			log.Printf("Failed to send notification to APNs for token %s: %v", token, resp.Status)
+		} else {
+			log.Printf("Notification sent successfully to APNs for token %s", token)
+		}
 	}
 
 	return nil
 }
 
-// Firebase를 통한 Android 푸시 알림 전송
+// TODO: FCM(Firebase Cloud Messaging)을 사용하여 Android 푸시 알림 전송
 func (n *Notification) sendToFirebase() error {
 	fcmURL := "https://fcm.googleapis.com/fcm/send"
 	fcmServerKey := "your-firebase-server-key"
 
-	payload := map[string]interface{}{
-		"to": n.Token,
-		"notification": map[string]string{
-			"title": n.Title,
-			"body":  n.Message,
-		},
-		"priority": n.Priority,
-	}
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
+	for _, token := range n.Tokens {
+		payload := map[string]interface{}{
+			"to": token,
+			"notification": map[string]string{
+				"title": n.Title,
+				"body":  n.Message,
+			},
+		}
+		payloadBytes, err := json.Marshal(payload)
+		if err != nil {
+			log.Printf("Failed to marshal payload for token %s: %v", token, err)
+			continue
+		}
 
-	req, err := http.NewRequest("POST", fcmURL, bytes.NewBuffer(payloadBytes))
-	if err != nil {
-		return err
-	}
+		req, err := http.NewRequest("POST", fcmURL, bytes.NewBuffer(payloadBytes))
+		if err != nil {
+			log.Printf("Failed to create request for token %s: %v", token, err)
+			continue
+		}
 
-	req.Header.Set("Authorization", fmt.Sprintf("key=%s", fcmServerKey))
-	req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("key=%s", fcmServerKey))
+		req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Printf("Failed to send notification to Firebase for token %s: %v", token, err)
+			continue
+		}
+		defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to send notification to Firebase: %v", resp.Status)
+		if resp.StatusCode != http.StatusOK {
+			log.Printf("Failed to send notification to Firebase for token %s: %v", token, resp.Status)
+		} else {
+			log.Printf("Notification sent successfully to Firebase for token %s", token)
+		}
 	}
 
 	return nil

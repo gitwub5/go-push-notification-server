@@ -65,11 +65,10 @@ func GetNotificationLogs(w http.ResponseWriter, r *http.Request) {
 
 		// 필요한 필드만 포함하는 맵 생성
 		filteredLog := map[string]string{
-			"id":       notification.ID,
-			"title":    notification.Title,
-			"message":  notification.Message,
-			"priority": notification.Priority,
-			"status":   notification.Status,
+			"id":      notification.ID,
+			"title":   notification.Title,
+			"message": notification.Message,
+			"status":  notification.Status,
 		}
 		filteredLogs = append(filteredLogs, filteredLog)
 	}
