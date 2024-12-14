@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: push-client
+  namespace: push-notifications
+  labels:
+    app: push-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: push-client
+  template:
+    metadata:
+      labels:
+        app: push-client
+    spec:
+      containers:
+      - name: push-client
+        image: ssgwoo/go-push-client:latest
+        env:
+        - name: SERVER_URL
+          value: http://push-server.push-notifications.svc.cluster.local:8080
+        - name: TEMPLATE_PATH
+          value: /root/templates/*
+        ports:
+        - containerPort: 8081
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8081
+          initialDelaySeconds: 10
+          periodSeconds: 15

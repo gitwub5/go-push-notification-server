@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: push-server
+  namespace: push-notifications
+  labels:
+    app: push-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: push-server
+  template:
+    metadata:
+      labels:
+        app: push-server
+    spec:
+      containers:
+      - name: push-server
+        image: ssgwoo/go-notification-server:latest
+        env:
+        - name: REDIS_HOST
+          value: redis.push-notifications.svc.cluster.local
+        - name: REDIS_PORT
+          value: "6379"
+        - name: MYSQL_HOST
+          value: mysql.push-notifications.svc.cluster.local
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: MYSQL_USER
+          value: root
+        - name: MYSQL_PASSWORD
+          value: password
+        - name: MYSQL_DATABASE
+          value: push_notification_db
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 15
