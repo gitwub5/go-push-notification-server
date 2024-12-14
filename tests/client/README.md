@@ -12,6 +12,11 @@ go-push-client/
 ├── cmd
 │   └── main.go             # Main entry point for the application
 │
+├── templates
+│   ├── home.html
+│   ├── send_direct.html
+│   └── send_topic.html
+│
 ├── config
 │   ├── config.go           # Configuration struct and environment variable parsing
 │   └── config.yml          # Configuration file (example)
