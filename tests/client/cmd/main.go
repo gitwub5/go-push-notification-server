@@ -2,83 +2,138 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
-	"time"
+	"strconv"
+	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gitwub5/go-push-client/api"
 )
 
+var baseURL string
+
 func main() {
 	// SERVER_URL 환경 변수 확인 및 기본 URL 설정
-	baseURL := os.Getenv("SERVER_URL")
+	baseURL = os.Getenv("SERVER_URL")
 	if baseURL == "" {
 		baseURL = "http://localhost:8080" // 기본값
 	}
 	fmt.Printf("Base URL: %s\n", baseURL)
 
-	// 1. Send a test notification
-	fmt.Println("1. Sending a test notification...")
-	notification := api.Notification{
-		Title:    "Hello",
-		Message:  "This is a test notification",
-		Token:    "example-token",
-		Priority: "high", // 우선순위 추가
-		Platform: 2,      // 플랫폼 추가 (예: 1 = iOS, 2 = Android)
-	}
-	notificationID, err := api.SendNotification(baseURL, notification)
-	if err != nil {
-		fmt.Printf("Failed to send notification: %v\n", err)
+	// Gin 라우터 설정
+	router := gin.Default()
+
+	// 템플릿 경로 설정
+	router.LoadHTMLGlob("templates/*")
+
+	// 엔드포인트 등록
+	router.GET("/", serveHome)
+	router.GET("/sendDirect", renderSendDirect)
+	router.POST("/sendDirect", handleSendDirect)
+	router.GET("/sendTopic", renderSendTopic)
+	router.POST("/sendTopic", handleSendTopic)
+
+	// 서버 실행
+	port := ":8081" // 웹 서버 포트
+	fmt.Printf("Client server is running on http://localhost%s\n", port)
+	router.Run(port)
+}
+
+// 홈 화면 렌더링
+func serveHome(c *gin.Context) {
+	c.HTML(http.StatusOK, "home.html", nil)
+}
+
+// Send Direct Notification 화면 렌더링
+func renderSendDirect(c *gin.Context) {
+	c.HTML(http.StatusOK, "send_direct.html", nil)
+}
+
+// Send Topic Notification 화면 렌더링
+func renderSendTopic(c *gin.Context) {
+	c.HTML(http.StatusOK, "send_topic.html", nil)
+}
+
+// 직접 전송 처리
+func handleSendDirect(c *gin.Context) {
+	var notification api.Notification
+
+	// 폼 데이터 파싱
+	tokens := c.PostForm("tokens")
+	platform := c.PostForm("platform")
+	title := c.PostForm("title")
+	message := c.PostForm("message")
+
+	// Notification 객체 생성
+	notification.Tokens = parseTokens(tokens)
+	notification.Platform = parsePlatform(platform)
+	notification.Title = title
+	notification.Message = message
+
+	// 검증
+	if len(notification.Tokens) == 0 || notification.Platform == 0 || notification.Title == "" || notification.Message == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing required fields"})
 		return
 	}
-	time.Sleep(3 * time.Second) // 3초 대기
 
-	// 2. Subscribe client to notifications
-	fmt.Println("2. Subscribing client to notifications...")
-	subRequest := api.SubscribeRequest{
-		Token: "example-device-token",
-		Topic: "primary notification",
+	// 알림 전송
+	response, err := api.SendDirectNotification(baseURL, notification)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to send notification: %v", err)})
+		return
 	}
-	api.Subscribe(baseURL, subRequest)
-	time.Sleep(3 * time.Second) // 3초 대기
 
-	// 3. Unsubscribe client from notifications
-	fmt.Println("3. Unsubscribing client from notifications...")
-	api.Unsubscribe(baseURL, subRequest)
-	time.Sleep(3 * time.Second) // 3초 대기
+	// 성공 응답
+	c.JSON(http.StatusOK, gin.H{
+		"status":   "success",
+		"response": response,
+	})
+}
 
-	// 4. Check the status of a notification
-	fmt.Println("4. Checking the status of a notification...")
-	if notificationID != "" {
-		api.CheckNotificationStatus(baseURL, notificationID)
-	} else {
-		fmt.Println("No notification ID available to check status.")
+// 토픽 기반 전송 처리
+func handleSendTopic(c *gin.Context) {
+	var notification api.Notification
+
+	// 폼 데이터 파싱
+	topic := c.PostForm("topic")
+	title := c.PostForm("title")
+	message := c.PostForm("message")
+
+	// Notification 객체 생성
+	notification.Title = title
+	notification.Message = message
+
+	// 검증
+	if topic == "" || notification.Title == "" || notification.Message == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing required fields"})
+		return
 	}
-	time.Sleep(3 * time.Second) // 3초 대기
 
-	// 5. Get all notification logs
-	fmt.Println("5. Getting all notification logs...")
-	api.GetNotificationLogs(baseURL)
-	time.Sleep(3 * time.Second) // 3초 대기
+	// 알림 전송
+	response, err := api.SendTopicNotification(baseURL, topic, notification)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to send topic notification: %v", err)})
+		return
+	}
 
-	// 6. Check server health
-	fmt.Println("6. Checking server health...")
-	api.CheckServerHealth(baseURL)
-	time.Sleep(3 * time.Second) // 3초 대기
+	// 성공 응답
+	c.JSON(http.StatusOK, gin.H{
+		"status":   "success",
+		"response": response,
+	})
+}
 
-	// 7. Get Go runtime performance metrics
-	fmt.Println("7. Getting Go runtime performance metrics...")
-	api.GetGoPerformanceMetrics(baseURL)
-	time.Sleep(3 * time.Second) // 3초 대기
+// 유틸리티 함수: tokens 문자열 파싱
+func parseTokens(tokens string) []string {
+	return strings.Split(tokens, ",")
+}
 
-	// 8. Get app-level notification statistics
-	fmt.Println("8. Getting app-level notification statistics...")
-	api.GetNotificationStats(baseURL)
-	time.Sleep(3 * time.Second) // 3초 대기
-
-	// 9. Get server configuration
-	fmt.Println("9. Getting server configuration...")
-	api.GetServerConfig(baseURL)
-
-	// 출력: 모든 요청 완료 후 실행 종료 메시지
-	fmt.Println("Execution has completed.")
+// 유틸리티 함수: platform 문자열 파싱
+func parsePlatform(platform string) int {
+	parsed, err := strconv.Atoi(platform)
+	if err != nil {
+		return 0 // 기본값 (잘못된 값)
+	}
+	return parsed
 }

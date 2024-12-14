@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Direct Notification</title>
+</head>
+<body>
+    <h1>Send Direct Notification</h1>
+    <form action="/sendDirect" method="POST">
+        <label for="tokens">Tokens (comma-separated):</label><br>
+        <input type="text" id="tokens" name="tokens"><br>
+        <label for="platform">Platform (1=iOS, 2=Android):</label><br>
+        <input type="number" id="platform" name="platform"><br>
+        <label for="title">Title:</label><br>
+        <input type="text" id="title" name="title"><br>
+        <label for="message">Message:</label><br>
+        <input type="text" id="message" name="message"><br>
+        <button type="submit">Send</button>
+    </form>
+    <a href="/">Back to Home</a>
+</body>
+</html>
